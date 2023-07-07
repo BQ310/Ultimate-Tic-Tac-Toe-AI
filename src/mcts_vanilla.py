@@ -15,6 +15,7 @@ def uct(child, parent, identity):
         winrate = 1 - child.wins / child.visits
     result = winrate + explore_faction*sqrt(log(parent.visits)/child.visits)
 
+# red = you ; blue = other player
 def traverse_nodes(node, board, state, identity):
     """ Traverses the tree until the end criterion are met.
 
@@ -32,9 +33,7 @@ def traverse_nodes(node, board, state, identity):
     else:
         other_id = 'red'
 
-    # how to notice when to end
-
-    if not node.untried_actions.empty():
+    if not node.untried_actions.empty() or board.is_ended(state):
         return node
     else:
         max = -1
@@ -61,8 +60,9 @@ def expand_leaf(node, board, state):
     """
     action = node.untried_actions[0]
     child_state = board.next_state(state, action)
-
     child = MCTSNode(node, action, board.legal_actions(child_state))
+    node.child_nodes[child] = action
+    node.untried_actions.remove(action)
     return child
     # Hint: return new_node
 
@@ -76,10 +76,8 @@ def rollout(board, state):
 
     """
     while not board.is_ended(state):
+
         
-
-
-
 def backpropagate(node, won):
     """ Navigates the tree from a leaf node to the root, updating the win and visit count of each node along the path.
 
@@ -115,13 +113,17 @@ def think(board, state):
         # Start at root
         node = root_node
 
-        leaf = traverse_nodes(node, board, sampled_game, identity_of_bot)
-        # is the state supposed to be the beginning state or the state associated with the leaf
-        expand_leaf(leaf, board, sampled_game)
-        # Do MCTS - This is all you!
-        rollout(board, sampled_game)
-        backpropagate(leaf, )
+        leaf = traverse_nodes(node, board, sampled_game, 'red')
+        added_node = expand_leaf(leaf, board, )
+        won = rollout(board, state)
+        backpropagate(board, won)
 
+    best_wr = -1
+    for child in root_node.child_nodes.keys():
+        if child.wins / child.visits > best_wr:
+            best_wr = child.wins / child.visits
+            best_child = child
+    return best_child.parent_action
+    
     # Return an action, typically the most frequently used action (from the root) or the action with the best
     # estimated win rate.
-    return None
