@@ -127,6 +127,10 @@ def think(board, state):
         node = root_node
 
         leaf, leaf_state = traverse_nodes(node, board, sampled_game, 'red')
+
+        if not leaf.untried_actions:
+            break
+
         child, child_state = expand_leaf(leaf, board, leaf_state)
         end_state = rollout(board, child_state)
         
