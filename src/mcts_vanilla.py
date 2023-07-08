@@ -13,7 +13,7 @@ def uct(child, parent, identity):
         winrate = child.wins / child.visits
     else:
         winrate = 1 - child.wins / child.visits
-    result = winrate + explore_faction*sqrt(log(parent.visits)/child.visits)
+    return winrate + explore_faction*sqrt(log(parent.visits)/child.visits)
 
 # red = you ; blue = other player
 def traverse_nodes(node, board, state, identity):
@@ -33,16 +33,17 @@ def traverse_nodes(node, board, state, identity):
     else:
         other_id = 'red'
 
-    if not node.untried_actions.empty() or board.is_ended(state):
-        return node
+    if node.untried_actions or board.is_ended(state):
+        return node, state
     else:
         max = -1
+        best_child = None
         for child in node.child_nodes.keys():
             child_uct = uct(child, node, identity)
             if child_uct > max:
                 max = child_uct
                 best_child = child
-        return traverse_nodes(best_child, board, board.next_state(state, node.child_node[child]), other_id)
+        return traverse_nodes(best_child, board, board.next_state(state, node.child_nodes[best_child]), other_id)
             
     # Hint: return leaf_node
 
@@ -63,7 +64,7 @@ def expand_leaf(node, board, state):
     child = MCTSNode(node, action, board.legal_actions(child_state))
     node.child_nodes[child] = action
     node.untried_actions.remove(action)
-    return child
+    return child, child_state
     # Hint: return new_node
 
 
@@ -75,7 +76,13 @@ def rollout(board, state):
         state:  The state of the game.
 
     """
-    while not board.is_ended(state):
+    if board.is_ended(state):
+        return state
+    else:
+        moves = board.legal_actions(state)
+        action = choice(moves)
+        return rollout(board, board.next_state(state, action))
+        
 
         
 def backpropagate(node, won):
@@ -86,7 +93,13 @@ def backpropagate(node, won):
         won:    An indicator of whether the bot won or lost the game.
 
     """
-    pass
+    node.wins = node.wins + won
+    node.visits = node.visits + 1
+    if node.parent is None:
+        return
+    else:
+        backpropagate(node.parent, won)
+        
 
 
 def think(board, state):
@@ -113,10 +126,17 @@ def think(board, state):
         # Start at root
         node = root_node
 
-        leaf = traverse_nodes(node, board, sampled_game, 'red')
-        added_node = expand_leaf(leaf, board, )
-        won = rollout(board, state)
-        backpropagate(board, won)
+        leaf, leaf_state = traverse_nodes(node, board, sampled_game, 'red')
+        child, child_state = expand_leaf(leaf, board, leaf_state)
+        end_state = rollout(board, child_state)
+        """
+        if board.is_ended(end_state):
+            print("ended")
+        else:
+            print("failed")
+        """
+        won = (board.points_values(end_state))[identity_of_bot]
+        backpropagate(child, won)
 
     best_wr = -1
     for child in root_node.child_nodes.keys():
