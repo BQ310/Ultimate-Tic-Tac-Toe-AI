@@ -59,7 +59,7 @@ def expand_leaf(node, board, state):
     Returns:    The added child node.
 
     """
-    action = node.untried_actions[0]
+    action = choice(node.untried_actions)
     child_state = board.next_state(state, action)
     child = MCTSNode(node, action, board.legal_actions(child_state))
     node.child_nodes[child] = action
@@ -129,12 +129,7 @@ def think(board, state):
         leaf, leaf_state = traverse_nodes(node, board, sampled_game, 'red')
         child, child_state = expand_leaf(leaf, board, leaf_state)
         end_state = rollout(board, child_state)
-        """
-        if board.is_ended(end_state):
-            print("ended")
-        else:
-            print("failed")
-        """
+        
         won = (board.points_values(end_state))[identity_of_bot]
         backpropagate(child, won)
 
