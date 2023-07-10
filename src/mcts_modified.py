@@ -66,14 +66,29 @@ def expand_leaf(node, board, state):
     node.untried_actions.remove(action)
     return child, child_state
     # Hint: return new_node
-"""
-def heuristic(identity, legal_actions, state, board):
-    owned = board.owned_boxes(state)
-"""
-    
+
+def player_owned(current_owned, identity):
+    player_owns = []
+    for i in current_owned.keys():
+        if current_owned[i] == identity:
+            player_owns.append(i)
+    return player_owns
+
+def heuristic(board, state, identity, legal_actions):
+    current_owned = board.owned_boxes(state)
+    currently_player_owned = player_owned(current_owned, identity)
+    for action in legal_actions:
+        next_state = board.next_state(state, action)
+        next_owned = board.owned_boxes(next_state)
+        next_player_owned = player_owned(next_owned, identity)
+        if not [item for item in next_player_owned if item not in currently_player_owned]:
+            return action
+    return None
+
+
 
 # 2 = circle; 1 = x
-def rollout(board, state):
+def rollout(board, state, identity):
     """ Given the state of the game, the rollout plays out the remainder randomly.
 
     Args:
@@ -81,12 +96,19 @@ def rollout(board, state):
         state:  The state of the game.
 
     """
+    if identity == 1:
+        other_id = 2
+    else:
+        other_id = 1
+
     if board.is_ended(state):
         return state
     else:
         moves = board.legal_actions(state)
-        action = choice(moves)
-        return rollout(board, board.next_state(state, action))
+        action = heuristic(board, state, identity, moves)
+        if action == None:
+            action = choice(moves)
+        return rollout(board, board.next_state(state, action), other_id)
         
 
         
@@ -137,7 +159,7 @@ def think(board, state):
             break
 
         child, child_state = expand_leaf(leaf, board, leaf_state)
-        end_state = rollout(board, child_state)
+        end_state = rollout(board, child_state, identity_of_bot)
         
         won = (board.points_values(end_state))[identity_of_bot]
         backpropagate(child, won)
