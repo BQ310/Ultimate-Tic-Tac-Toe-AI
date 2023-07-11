@@ -166,7 +166,9 @@ def think(board, state):
         end_state = rollout(board, child_state, rollout_id)
         
         won = (board.points_values(end_state))[identity_of_bot]
+        
         won = 1 if won == 1 else 0
+
         backpropagate(child, won)
 
     best_wr = -1

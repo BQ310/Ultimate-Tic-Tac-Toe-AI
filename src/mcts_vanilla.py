@@ -133,8 +133,8 @@ def think(board, state):
 
         child, child_state = expand_leaf(leaf, board, leaf_state)
         end_state = rollout(board, child_state)
-        won = 1 if won==1 else 0
         won = (board.points_values(end_state))[identity_of_bot]
+        won = 1 if won==1 else 0
         backpropagate(child, won)
 
     best_wr = -1
