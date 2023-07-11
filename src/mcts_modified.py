@@ -67,6 +67,17 @@ def expand_leaf(node, board, state):
     return child, child_state
     # Hint: return new_node
 
+# will prioritize taking an action that results in a box being taken
+# otherwise will give random action
+def heuristic(board, state):
+    moves = board.legal_actions(state)
+    prev_owned = board.owned_boxes(state)
+    for action in moves:
+        ns = board.next_state(state, action)
+        now_owned = board.owned_boxes(state)
+        if now_owned != prev_owned:
+            return action
+    return choice(moves)
 
 def rollout(board, state):
     """ Given the state of the game, the rollout plays out the remainder randomly.
@@ -79,11 +90,9 @@ def rollout(board, state):
     if board.is_ended(state):
         return state
     else:
-        moves = board.legal_actions(state)
-        action = choice(moves)
+        action = heuristic(board, state)
         return rollout(board, board.next_state(state, action))
         
-
         
 def backpropagate(node, won):
     """ Navigates the tree from a leaf node to the root, updating the win and visit count of each node along the path.
@@ -100,7 +109,6 @@ def backpropagate(node, won):
     else:
         backpropagate(node.parent, won)
         
-
 
 def think(board, state):
     """ Performs MCTS by sampling games and calling the appropriate functions to construct the game tree.
