@@ -4,7 +4,7 @@ from random import choice
 from math import sqrt, log
 
 num_nodes = 1000
-explore_faction = 2.
+explore_faction = 2
 
 
 def uct(child, parent, identity):
@@ -34,7 +34,7 @@ def traverse_nodes(node, board, state, identity):
         other_id = 'red'
 
     if node.untried_actions or board.is_ended(state):
-        return node, state, identity
+        return node, state
     else:
         max = -1
         best_child = None
@@ -67,31 +67,8 @@ def expand_leaf(node, board, state):
     return child, child_state
     # Hint: return new_node
 
-# returns a list of boxes owned by player #
-def player_box(owned, identity):
-    result = []
-    for box in owned.keys():
-        if owned[box] == identity:
-            result.append(box)
-    return result
 
-# if an available action results in a box being taken then take that action.
-# otherwise take a random action
-def heuristic(board, state, identity):
-    moves = board.legal_actions(state)
-    owned = board.owned_boxes(state)
-    player_prev_owns = player_box(owned, identity)
-    for action in moves:
-        ns = board.next_state(state, action)
-        next_owned = board.owned_boxes(ns)
-        player_now_owns = player_box(next_owned, identity)
-        good = [item for item in player_now_owns if item not in player_prev_owns]
-        if good:
-            return action
-    return choice(moves)
-
-# 2 = circle; 1 = x
-def rollout(board, state, identity):
+def rollout(board, state):
     """ Given the state of the game, the rollout plays out the remainder randomly.
 
     Args:
@@ -99,16 +76,14 @@ def rollout(board, state, identity):
         state:  The state of the game.
 
     """
-    if identity == 1:
-        other_id = 2
-    else:
-        other_id = 1
-
     if board.is_ended(state):
         return state
     else:
-        action = heuristic(board, state, identity)
-        return rollout(board, board.next_state(state, action), other_id)
+        moves = board.legal_actions(state)
+        action = choice(moves)
+        return rollout(board, board.next_state(state, action))
+        
+
         
 def backpropagate(node, won):
     """ Navigates the tree from a leaf node to the root, updating the win and visit count of each node along the path.
@@ -125,6 +100,7 @@ def backpropagate(node, won):
     else:
         backpropagate(node.parent, won)
         
+
 
 def think(board, state):
     """ Performs MCTS by sampling games and calling the appropriate functions to construct the game tree.
@@ -150,25 +126,15 @@ def think(board, state):
         # Start at root
         node = root_node
 
-        leaf, leaf_state, leaf_id = traverse_nodes(node, board, sampled_game, 'red')
+        leaf, leaf_state = traverse_nodes(node, board, sampled_game, 'red')
 
         if not leaf.untried_actions:
             break
 
         child, child_state = expand_leaf(leaf, board, leaf_state)
-
-
-        if leaf_id == 'red':
-            rollout_id = 1 if identity_of_bot == 2 else 2
-        else:
-            rollout_id = identity_of_bot
-
-        end_state = rollout(board, child_state, rollout_id)
-        
+        end_state = rollout(board, child_state)
         won = (board.points_values(end_state))[identity_of_bot]
-        
-        won = 1 if won == 1 else 0
-
+        won = 1 if won==1 else 0
         backpropagate(child, won)
 
     best_wr = -1

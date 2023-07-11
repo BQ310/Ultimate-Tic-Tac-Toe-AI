@@ -4,7 +4,7 @@ from random import choice
 from math import sqrt, log
 
 num_nodes = 1000
-explore_faction = 2.
+explore_faction = 2
 
 
 def uct(child, parent, identity):
