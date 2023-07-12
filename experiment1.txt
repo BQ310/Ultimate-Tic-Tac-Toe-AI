@@ -1,0 +1,8 @@
+In experiment 1, the mcts vanilla bot goes against another mcts vanilla bot with a different tree size. 
+In this case, player one is constantly kept at a tree size of 100 nodes while player 2 is variable.
+The expected result is that an increase in tree nodes will lead to a higher win count since the mcts
+will have more information to choose a better action. This hypothesis is enforced by the results which 
+show an increase in wins for player 2 as the number of tree nodes increases. Noticeably, the results seem 
+to be logarithmic in that increasing the number of tree nodes does always provide the same return in wins. 
+At the number of tree nodes increases, the number of wins gained decreases. This makes sense because inevitably,
+the mcts is not exhaustive and therefore is always prone to some losses.

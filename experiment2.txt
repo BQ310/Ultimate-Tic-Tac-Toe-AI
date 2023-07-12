@@ -1,0 +1,7 @@
+Experiment two involves pitting the modifified mcts vs the vanilla mcts with a varying number of 
+tree nodes for both bots. The expected outcome is that the modified mcts will have a greater outcome 
+at all tree nodes since the heuristic will provide it better odds of simulating meaningful events. However, 
+as the number of tree nodes reaches exhaustion both bots will behave simularly. The results show that 
+the modified mcts performs better than the vanilla bot at every amount of tree nodes. This difference in wins 
+is variable but is consistently always positive in favor of the modified bot. With an increase in tests, it the 
+difference between modified and vanilla will likely approach some meaningful value. 
